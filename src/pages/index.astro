@@ -1,0 +1,51 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Card from "@components/Card.astro";
+const pageTitle = "Home Page";
+
+async function fetchProjects() {
+  const imageFiles = await Astro.glob("../../public/proj/*");
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+
+  return imageFiles
+    .map((image) => {
+      const imagePath = image.default;
+      const imagePathSrc = imagePath.src;
+      const match = imagePathSrc.match(filenameRegex);
+      const [_, date, name, numeric, thumb, eightChar] = match;
+
+      const day = date.slice(6, 8);
+      const month = date.slice(4, 6);
+      const year = date.slice(0, 4);
+      const formattedDate = `${day}/${month}/${year}`;
+      return {
+        imageUrl: imagePathSrc,
+        title: name,
+        subtitle: formattedDate,
+        link: `${date}-${name}/images`,
+        width: imagePath.width,
+        height: imagePath.height,
+      };
+    })
+    .filter(Boolean);
+}
+
+const projects = await fetchProjects();
+---
+
+<BaseLayout>
+  <title slot="head">{pageTitle}</title>
+  <div class="row m-3 row-cols-1 row-cols-md-2 row-cols-lg-3">
+    {
+      projects.map((project) => (
+        <Card
+          img={project.imageUrl}
+          title={project.title}
+          subtitle={project.subtitle}
+          btnLink={project.link}
+        />
+      ))
+    }
+  </div>
+</BaseLayout>

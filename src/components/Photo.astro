@@ -1,0 +1,15 @@
+---
+const { img, imgThumb, alt, width, height } = Astro.props;
+---
+
+<a href={img} data-pswp-width={width} data-pswp-height={height} target="_blank">
+  <img src={imgThumb} alt={alt} class="img-fluid rounded m-2 shadow" width="150px" />
+
+  <style>
+    @media (min-width: 576px) {
+      img {
+        width: 200px;
+      }
+    }
+  </style>
+</a>

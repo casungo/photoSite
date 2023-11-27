@@ -1,0 +1,167 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import Photo from "@components/Photo.astro";
+import TitleCardProj from "@components/TitleCardProj.astro";
+
+export async function getStaticPaths() {
+  const projectFiles = await Astro.glob("../../../public/proj/*");
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+
+  return projectFiles
+    .map((image) => {
+      const imagePath = image.default;
+      const imagePathSrc = imagePath.src;
+      const match = imagePathSrc.match(filenameRegex);
+      const [_, date, name, numeric, thumb, eightChar] = match;
+
+      return {
+        params: { date, name },
+      };
+    })
+    .filter(Boolean);
+}
+
+const { date, name } = Astro.params;
+
+function formattedDate() {
+  const day = date.slice(6, 8);
+  const month = date.slice(4, 6);
+  const year = date.slice(0, 4);
+  const formattedDate = `${day}/${month}/${year}`;
+  return formattedDate;
+}
+
+async function fetchPhotos() {
+  const photos = await Astro.glob("../../../public/proj/*/*");
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+
+  // Function to check if photo matches the params and contains a number in the filename
+  const photoMatchesParams = (imagePathSrc) => {
+    const match = imagePathSrc.match(filenameRegex);
+    if (!match) return false;
+    const [_, date, name, numeric] = match;
+    const hasMatchingName = name.includes(Astro.params.name);
+    const hasMatchingDate = date.includes(Astro.params.date);
+    const hasNumberInFilename = !!numeric;
+    return hasMatchingName && hasMatchingDate && hasNumberInFilename;
+  };
+
+  // Separate photos and thumbnails into different arrays and filter by params and number in filename
+  const filteredPhotos = photos.filter(
+    (image) =>
+      !image.default.src.includes("_thumb") &&
+      photoMatchesParams(image.default.src),
+  );
+  const filteredThumbPhotos = photos.filter(
+    (image) =>
+      image.default.src.includes("_thumb") &&
+      photoMatchesParams(image.default.src),
+  );
+
+  // Function to sort by numeric identifier in ascending order
+  const sortPhotos = (a, b) => {
+    const matchA = a.match(filenameRegex);
+    const matchB = b.match(filenameRegex);
+    const numericA = matchA && matchA[3] ? parseInt(matchA[3]) : 0;
+    const numericB = matchB && matchB[3] ? parseInt(matchB[3]) : 0;
+    return numericA - numericB;
+  };
+
+  // Sort both photo arrays
+  filteredPhotos.sort((a, b) => sortPhotos(a.default.src, b.default.src));
+  filteredThumbPhotos.sort((a, b) => sortPhotos(a.default.src, b.default.src));
+
+  return filteredPhotos.map((photo) => {
+    const imagePath = photo.default;
+    const imagePathSrc = imagePath.src;
+    const width = imagePath.width;
+    const height = imagePath.height;
+
+    // Extract data from the main image
+    const match = imagePathSrc.match(filenameRegex);
+    const [_, date, name, numeric] = match;
+
+    // Find the corresponding thumbnail image
+    const thumbImage = filteredThumbPhotos.find((thumb) => {
+      const thumbPathSrc = thumb.default.src;
+      const thumbMatch = thumbPathSrc.match(filenameRegex);
+      if (!thumbMatch) return false;
+      const [_, thumbDate, thumbName, thumbNumeric] = thumbMatch;
+      return (
+        date === thumbDate && name === thumbName && numeric === thumbNumeric
+      );
+    });
+
+    // Extract src for the thumbnail
+    const thumbSrc = thumbImage ? thumbImage.default.src : null;
+
+    return {
+      img: imagePathSrc,
+      imgThumb: thumbSrc,
+      width,
+      height,
+    };
+  });
+}
+
+async function fetchHeroImage() {
+  const photos = await Astro.glob("../../../public/proj/*");
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+  const filteredPhotos = photos.filter((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+    const match = imagePathSrc.match(filenameRegex);
+
+    const [_, date, name, numeric, thumb, eightChar] = match;
+    const hasMatchingName = name.includes(Astro.params.name);
+    const hasMatchingDate = date.includes(Astro.params.date);
+
+    return hasMatchingDate && hasMatchingName;
+  });
+
+  return filteredPhotos[0]?.default?.src;
+}
+
+const photos = await fetchPhotos();
+const heroImage = await fetchHeroImage();
+---
+
+<BaseLayout>
+  <link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
+  <h1 class="text-center">
+    <TitleCardProj
+      img={heroImage}
+      title={name}
+      contentDate={formattedDate()}
+      contentTitle={name}
+    />
+  </h1>
+  <div class="pswp-gallery centered" id="gallery">
+    <div class="gallery-container">
+      {
+        photos.map((photo) => (
+          <div class="image-wrapper">
+            <Photo {...photo} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>
+
+<script type="module">
+  import PhotoSwipeLightbox from "/photoswipe/photoswipe-lightbox.esm.js";
+
+  const lightbox = new PhotoSwipeLightbox({
+    gallery: "#gallery",
+    children: "a",
+    pswpModule: () => import("/photoswipe/photoswipe.esm.js"),
+    wheelToZoom: true,
+    pinchToClose: false,
+  });
+
+  lightbox.init();
+</script>
