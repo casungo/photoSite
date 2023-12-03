@@ -1,6 +1,6 @@
 ---
 // Corrected imports
-import { Image } from "astro:assets";
+import Card from "../components/card.astro";
 
 export function formatDate(dateString: string) {
   const year = dateString.substring(0, 4);
@@ -11,21 +11,23 @@ export function formatDate(dateString: string) {
 
 export async function generateCardData() {
   const entries = await Astro.glob("../proj/*");
-  const cardData = entries.map((entry: any) => {
-    const src = entry.default.src;
-    const match = src.match(/(\d{8}) - ([^.]+).jpg/);
-    if (match) {
-      const dateFormatted = formatDate(match[1]);
-      return {
-        title: match[2],
-        subtitle: dateFormatted,
-        image: entry.default,
-        btnLink: `/${match[1]} - ${match[2]}/images`,
-      };
-    }
-    return null;
-  }).filter(Boolean);
-  
+  const cardData = entries
+    .map((entry: any) => {
+      const src = entry.default.src;
+      const match = src.match(/(\d{8}) - ([^.]+).jpg/);
+      if (match) {
+        const dateFormatted = formatDate(match[1]);
+        return {
+          title: match[2],
+          subtitle: dateFormatted,
+          image: entry.default,
+          btnLink: `/${match[1]} - ${match[2]}/images`,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
   return cardData;
 }
 ---
@@ -33,27 +35,7 @@ export async function generateCardData() {
 {
   (await generateCardData()).map((item) => (
     <div class="col py-3">
-      <div class="card h-100">
-        <div class="ratio ratio-16x9">
-          <Image
-            src={item.image}
-            alt={item.title}
-            class="card-img-top"
-            draggable="false"
-          />
-        </div>
-        <div class="card-body">
-          <h5 class="card-title">{item.title}</h5>
-          <h6 class="card-subtitle mb-2 text-body-secondary">
-            {item.subtitle}
-          </h6>
-        </div>
-        <div class="card-footer">
-          <a href={item.btnLink} class="btn btn-outline-primary">
-            <i class="bi bi-camera" /> Vai alle foto!
-          </a>
-        </div>
-      </div>
+      <Card item={item} />
     </div>
   ))
 }

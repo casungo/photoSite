@@ -1,0 +1,28 @@
+---
+// Card.astro
+// Define the props that your component will accept
+const { item } = Astro.props;
+import { Image } from "astro:assets";
+---
+
+<div class="card h-100">
+  <div class="ratio ratio-16x9">
+    <Image
+      src={item.image}
+      alt={item.title}
+      class="card-img-top"
+      draggable="false"
+    />
+  </div>
+  <div class="card-body">
+    <h5 class="card-title">{item.title}</h5>
+    <h6 class="card-subtitle mb-2 text-body-secondary">
+      {item.subtitle}
+    </h6>
+  </div>
+  <div class="card-footer">
+    <a href={item.btnLink} class="btn btn-outline-primary">
+      <i class="bi bi-camera"></i> Vai alle foto!
+    </a>
+  </div>
+</div>
