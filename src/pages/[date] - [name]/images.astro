@@ -1,37 +1,17 @@
 ---
-import BaseLayout from "../../layouts/baseLayout.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
 
-export async function getStaticPaths() {
-  const projectFiles = await Astro.glob("../../proj/*.jpg");
-  const pathPattern = /(\d{8}) - ([^.]+).jpg/;
-  const staticPaths = projectFiles
-    .map((file) => {
-      const match = file.default.src.match(pathPattern);
-      return match ? { params: { date: match[1], name: match[2] } } : null;
-    })
-    .filter(Boolean);
-  return staticPaths;
+export function getStaticPaths () {
+ return [
+    {params: {date: '20230919', name: 'Compleanno'}},
+    {params: {date: '20231209', name: 'Festa'}},
+    {params: {date: '20231225', name: 'Natale'}},
+  ];
 }
 
-export function formatDate(date) {
-  const year = date.slice(0, 4);
-  const month = date.slice(4, 6);
-  const day = date.slice(6, 8);
-  return `${day}/${month}/${year}`;
-}
+const { date, name } = Astro.params;
 ---
 
 <BaseLayout>
-  <figure class="text-center">
-    <blockquote class="blockquote">
-      <h1>{Astro.params.name}</h1>
-    </blockquote>
-    <figcaption class="blockquote-footer text-end">
-      Fotografie scattate il <cite title={Astro.params.date}
-        >{formatDate(Astro.params.date)}</cite
-      >
-    </figcaption>
-  </figure>
-  <hr />
   <h1 class="text-center">if you see this, it means the code works!</h1>
 </BaseLayout>

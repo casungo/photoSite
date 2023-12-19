@@ -1,52 +1,29 @@
 ---
-import BaseLayout from "../layouts/baseLayout.astro";
-import Card from "../components/card.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Card from "../components/Card.astro";
 const title = "Home Page";
-
-async function formatDate(dateString: string) {
-  const year = dateString.substring(0, 4);
-  const month = dateString.substring(4, 6);
-  const day = dateString.substring(6, 8);
-  return `${day}/${month}/${year}`;
-}
-
-async function generateCardData() {
-  const entries = await Astro.glob("../proj/*");
-  const cardData = entries
-    .map((entry: any) => {
-      const src = entry.default.src;
-      const match = src.match(/(\d{8}) - ([^.]+).jpg/);
-      if (match) {
-        const dateFormatted = formatDate(match[1]);
-        return {
-          title: match[2],
-          subtitle: dateFormatted,
-          image: entry.default,
-          btnLink: `/${match[1]} - ${match[2]}/images`,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  return cardData;
-}
 ---
 
 <BaseLayout>
   <title slot="head">{title}</title>
   <div class="row m-3 row-cols-1 row-cols-md-2 row-cols-lg-3">
-    {
-      (async () => {
-        const cardData = await generateCardData();
-        return cardData.map((item) => (
-          <>
-            <div class="col py-3">
-              <Card item={item} />
-            </div>
-          </>
-        ));
-      })()
-    }
+    <Card
+      img="proj/20230919 - Compleanno.jpg"
+      title="Compleanno"
+      subtitle="19/09/2023"
+      btnLink="20230919 - Compleanno/images"
+    />
+    <Card
+      img="proj/20231209 - Festa.jpg"
+      title="Festa"
+      subtitle="09/12/2023"
+      btnLink="20231209 - Festa/images"
+    />
+    <Card
+      img="proj/20231225 - Natale.jpg"
+      title="Natale"
+      subtitle="25/12/2023"
+      btnLink="20231225 - Natale/images"
+    />
   </div>
 </BaseLayout>
