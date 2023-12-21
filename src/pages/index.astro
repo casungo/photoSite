@@ -2,28 +2,38 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Card from "@components/Card.astro";
 const title = "Home Page";
+
+const getProjects = async () => {
+  const projs = await Astro.glob('../../public/proj/*.jpg');
+  const dateRegex = /\d{8}/;
+  const nameRegex = / - (.+?)\.jpg/;
+
+  return projs.map((proj) => {
+    const src = proj.default.src;
+    const dateMatch = src.match(dateRegex);
+    const nameMatch = src.match(nameRegex);
+    return {
+      img: `proj/${dateMatch[0]} - ${nameMatch[1]}.jpg`,
+      title: nameMatch[1],
+      subtitle: `${dateMatch[0].slice(6, 8)}/${dateMatch[0].slice(4, 6)}/${dateMatch[0].slice(0, 4)}`,
+      btnLink: `${dateMatch[0]} - ${nameMatch[1]}/images`
+    };
+  });
+};
+
+const projects = await getProjects();
 ---
 
 <BaseLayout>
   <title slot="head">{title}</title>
   <div class="row m-3 row-cols-1 row-cols-md-2 row-cols-lg-3">
-    <Card
-      img="proj/20230919 - Compleanno.jpg"
-      title="Compleanno"
-      subtitle="19/09/2023"
-      btnLink="20230919 - Compleanno/images"
-    />
-    <Card
-      img="proj/20231209 - Festa.jpg"
-      title="Festa"
-      subtitle="09/12/2023"
-      btnLink="20231209 - Festa/images"
-    />
-    <Card
-      img="proj/20231225 - Natale.jpg"
-      title="Natale"
-      subtitle="25/12/2023"
-      btnLink="20231225 - Natale/images"
-    />
+    {projects.map(project => (
+      <Card
+        img={project.img}
+        title={project.title}
+        subtitle={project.subtitle}
+        btnLink={project.btnLink}
+      />
+    ))}
   </div>
 </BaseLayout>

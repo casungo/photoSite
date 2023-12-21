@@ -14,6 +14,9 @@
         ],
         "@styles/*": [
           "src/styles/*"
+        ],
+        "@photoswipe/*": [
+          "src/photoswipe/*"
         ]
       }
     }

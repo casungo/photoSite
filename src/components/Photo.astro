@@ -1,0 +1,16 @@
+---
+const { img } = Astro.props;
+---
+    <a
+      href={img}
+      data-pswp-width="1669"
+      data-pswp-height="2500"
+      target="_blank"
+    >
+      <img
+        src={img} + "_thumb"
+        alt=""
+        class="img-fluid"
+        width="25%"
+      />
+    </a>

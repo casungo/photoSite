@@ -1,17 +1,58 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
+import Photo from "@components/Photo.astro";
 
-export function getStaticPaths () {
- return [
-    {params: {date: '20230919', name: 'Compleanno'}},
-    {params: {date: '20231209', name: 'Festa'}},
-    {params: {date: '20231225', name: 'Natale'}},
-  ];
+export async function getStaticPaths() {
+  const projs = await Astro.glob("../../../public/proj/*");
+  const dateRegex = /\d{8}/;
+  const nameRegex = / - (.+?)\.jpg/;
+
+  const projects = projs.map((proj) => {
+    const src = proj.default.src;
+    const dateMatch = src.match(dateRegex);
+    const nameMatch = src.match(nameRegex);
+    return {
+      date: dateMatch ? parseInt(dateMatch[0], 10) : null,
+      name: nameMatch ? nameMatch[1] : null,
+    };
+  });
+
+  console.log(projects);
+  return projects.map(({ date, name }) => {
+    return {
+      params: { date: date, name: name },
+    };
+  });
 }
 
 const { date, name } = Astro.params;
+
+const path = `../proj/${date} - ${name}/1.jpg`;
 ---
 
 <BaseLayout>
+  <link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
   <h1 class="text-center">if you see this, it means the code works!</h1>
+  <div class="pswp-gallery" id="gallery">
+    <Photo img={path} />
+  </div>
 </BaseLayout>
+<script type="module">
+  import PhotoSwipeLightbox from "/photoswipe/photoswipe-lightbox.esm.js";
+  const lightbox = new PhotoSwipeLightbox({
+    gallery: "#gallery",
+    children: "a",
+    pswpModule: () => import("/photoswipe/photoswipe.esm.js"),
+    wheelToZoom: true,
+    pinchToClose: false,
+  });
+  lightbox.addFilter("contentErrorElement", (contentErrorElement, content) => {
+    const el = document.createElement("div");
+    el.className = "pswp__error-msg";
+    el.innerHTML = `<a href="${content.data.src}" target="_blank"> La #${
+      content.slide.index + 1
+    } immagine non può essere caricata, contatta casu subito`;
+    return el;
+  });
+  lightbox.init();
+</script>
