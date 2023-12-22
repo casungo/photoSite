@@ -3,24 +3,17 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Photo from "@components/Photo.astro";
 
 export async function getStaticPaths() {
-  const projs = await Astro.glob("../../../public/proj/*");
-  const dateRegex = /\d{8}/;
-  const nameRegex = / - (.+?)\.jpg/;
+  const projectFilePaths = await Astro.glob("../../../public/proj/*");
+  const filenamePattern = /\d{8} - (.+?)\./;
 
-  const projects = projs.map((proj) => {
-    const src = proj.default.src;
-    const dateMatch = src.match(dateRegex);
-    const nameMatch = src.match(nameRegex);
+  return projectFilePaths.map((projectFilePath) => {
+    const src = projectFilePath.default.src;
+    const match = src.match(filenamePattern);
     return {
-      date: dateMatch ? parseInt(dateMatch[0], 10) : null,
-      name: nameMatch ? nameMatch[1] : null,
-    };
-  });
-
-  console.log(projects);
-  return projects.map(({ date, name }) => {
-    return {
-      params: { date: date, name: name },
+      params: {
+        date: parseInt(match?.[0], 10),
+        name: match?.[1],
+      },
     };
   });
 }
@@ -51,7 +44,7 @@ const path = `../proj/${date} - ${name}/1.jpg`;
     el.className = "pswp__error-msg";
     el.innerHTML = `<a href="${content.data.src}" target="_blank"> La #${
       content.slide.index + 1
-    } immagine non può essere caricata, contatta casu subito`;
+    } immagine non può essere caricata, questo è un problema, contatta casu subito`;
     return el;
   });
   lightbox.init();

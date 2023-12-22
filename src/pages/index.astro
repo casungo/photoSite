@@ -4,19 +4,20 @@ import Card from "@components/Card.astro";
 const title = "Home Page";
 
 const getProjects = async () => {
-  const projs = await Astro.glob('../../public/proj/*.jpg');
-  const dateRegex = /\d{8}/;
-  const nameRegex = / - (.+?)\.jpg/;
+  const projects = await Astro.glob('../../public/proj/*.jpg');
+  const filenamePattern = /(\d{8}) - (.+?)\.([-\w]{8})?/;
 
-  return projs.map((proj) => {
-    const src = proj.default.src;
-    const dateMatch = src.match(dateRegex);
-    const nameMatch = src.match(nameRegex);
+  return projects.map((project) => {
+    const src = project.default.src;
+    const match = src.match(filenamePattern);
+    const date = match[1];
+    const name = match[2];
+    const hash = match[3];
     return {
-      img: `proj/${dateMatch[0]} - ${nameMatch[1]}.jpg`,
-      title: nameMatch[1],
-      subtitle: `${dateMatch[0].slice(6, 8)}/${dateMatch[0].slice(4, 6)}/${dateMatch[0].slice(0, 4)}`,
-      btnLink: `${dateMatch[0]} - ${nameMatch[1]}/images`
+      img: `/proj/${date} - ${name}.jpg`,
+      title: name,
+      subtitle: `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(0, 4)}`,
+      btnLink: `${date} - ${name}/images`
     };
   });
 };
