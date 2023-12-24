@@ -1,40 +1,48 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Card from "@components/Card.astro";
-const title = "Home Page";
+const pageTitle = "Home Page";
 
-const getProjects = async () => {
-  const projects = await Astro.glob('../../public/proj/*.jpg');
-  const filenamePattern = /(\d{8}) - (.+?)\.([-\w]{8})?/;
+const fetchProjects = async () => {
+  const imageFiles = await Astro.glob("../../public/proj/*.jpg");
+  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
 
-  return projects.map((project) => {
-    const src = project.default.src;
-    const match = src.match(filenamePattern);
-    const date = match[1];
-    const name = match[2];
-    const hash = match[3];
-    return {
-      img: `/proj/${date} - ${name}.jpg`,
-      title: name,
-      subtitle: `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(0, 4)}`,
-      btnLink: `${date} - ${name}/images`
-    };
-  });
+  return imageFiles
+    .map((image) => {
+      const imagePath = image.default.src;
+      const matches = imagePath.match(filenameRegex);
+      if (!matches) {
+        console.error(`Filename does not match expected pattern: ${imagePath}`);
+        return null;
+      }
+      const [_, date, name] = matches;
+      const formattedDate = `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(0, 4)}`;
+      
+      return {
+        imageUrl: `/proj/${date} - ${name}.jpg`,
+        title: name,
+        subtitle: formattedDate,
+        link: `${date} - ${name}/images`,
+      };
+    })
+    .filter(Boolean);
 };
 
-const projects = await getProjects();
+const projects = await fetchProjects();
 ---
 
 <BaseLayout>
-  <title slot="head">{title}</title>
+  <title slot="head">{pageTitle}</title>
   <div class="row m-3 row-cols-1 row-cols-md-2 row-cols-lg-3">
-    {projects.map(project => (
-      <Card
-        img={project.img}
-        title={project.title}
-        subtitle={project.subtitle}
-        btnLink={project.btnLink}
-      />
-    ))}
+    {
+      projects.map((project) => (
+        <Card
+          img={project.imageUrl}
+          title={project.title}
+          subtitle={project.subtitle}
+          btnLink={project.link}
+        />
+      ))
+    }
   </div>
 </BaseLayout>

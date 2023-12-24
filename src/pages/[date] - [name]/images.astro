@@ -3,35 +3,70 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Photo from "@components/Photo.astro";
 
 export async function getStaticPaths() {
-  const projectFilePaths = await Astro.glob("../../../public/proj/*");
-  const filenamePattern = /\d{8} - (.+?)\./;
+  const projectFiles = await Astro.glob("../../../public/proj/*");
+  const filenameRegex = /(\d{8}) - (.+?)\./;
 
-  return projectFilePaths.map((projectFilePath) => {
-    const src = projectFilePath.default.src;
-    const match = src.match(filenamePattern);
-    return {
-      params: {
-        date: parseInt(match?.[0], 10),
-        name: match?.[1],
-      },
-    };
-  });
+  const paths = projectFiles
+    .map((file) => {
+      const { src } = file.default;
+      const match = src.match(filenameRegex);
+
+      if (match) {
+        const [, date, name] = match;
+        return {
+          params: { date, name },
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  return paths;
 }
 
 const { date, name } = Astro.params;
+const formattedDate = `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(
+  0,
+  4,
+)}`;
+const projectFolder = `${date} - ${name}`;
 
-const path = `../proj/${date} - ${name}/1.jpg`;
+const photos = await Astro.glob("../../../public/proj/**/*.jpg");
+
+const photoPaths = photos
+  .map((file) => {
+    const { src } = file.default;
+    const matches = src.match(/proj\/.+\.(jpg|jpeg)/i);
+
+    if (matches) {
+      const relativePath = matches[0];
+      const folderPath = `proj/${projectFolder}/`;
+
+      if (
+        relativePath.startsWith(folderPath) &&
+        !relativePath.includes("_thumb.jpg") &&
+        relativePath.replace(folderPath, "").indexOf("/") === -1
+      ) {
+        return relativePath;
+      }
+    }
+    return null;
+  })
+  .filter(Boolean);
 ---
 
 <BaseLayout>
   <link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
-  <h1 class="text-center">if you see this, it means the code works!</h1>
+  <h1 class="text-center">
+    {formattedDate + " - " + name}
+  </h1>
   <div class="pswp-gallery" id="gallery">
-    <Photo img={path} />
+    {photoPaths.map((photoSrc) => <Photo img={`../${photoSrc}`} />)}
   </div>
 </BaseLayout>
 <script type="module">
   import PhotoSwipeLightbox from "/photoswipe/photoswipe-lightbox.esm.js";
+
   const lightbox = new PhotoSwipeLightbox({
     gallery: "#gallery",
     children: "a",
@@ -39,13 +74,6 @@ const path = `../proj/${date} - ${name}/1.jpg`;
     wheelToZoom: true,
     pinchToClose: false,
   });
-  lightbox.addFilter("contentErrorElement", (contentErrorElement, content) => {
-    const el = document.createElement("div");
-    el.className = "pswp__error-msg";
-    el.innerHTML = `<a href="${content.data.src}" target="_blank"> La #${
-      content.slide.index + 1
-    } immagine non può essere caricata, questo è un problema, contatta casu subito`;
-    return el;
-  });
+
   lightbox.init();
 </script>
