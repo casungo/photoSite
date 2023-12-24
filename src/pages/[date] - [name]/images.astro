@@ -23,36 +23,49 @@ export async function getStaticPaths() {
 
   return paths;
 }
-
 const { date, name } = Astro.params;
 const formattedDate = `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(
   0,
   4,
 )}`;
-const projectFolder = `${date} - ${name}`;
 
-const photos = await Astro.glob("../../../public/proj/**/*.jpg");
+const fetchPhotoPaths = async () => {
 
-const photoPaths = photos
-  .map((file) => {
-    const { src } = file.default;
-    const matches = src.match(/proj\/.+\.(jpg|jpeg)/i);
+  const photos = await Astro.glob("../../../public/proj/**/*.jpg");
+  const projectFolder = `${date} - ${name}`;
 
-    if (matches) {
-      const relativePath = matches[0];
-      const folderPath = `proj/${projectFolder}/`;
+  return photos
+    .map((file) => {
+      const { src } = file.default;
+      const matches = src.match(/proj\/.+\.(jpg|jpeg)/i);
 
-      if (
-        relativePath.startsWith(folderPath) &&
-        !relativePath.includes("_thumb.jpg") &&
-        relativePath.replace(folderPath, "").indexOf("/") === -1
-      ) {
-        return relativePath;
+      if (matches) {
+        const relativePath = matches[0];
+        const folderPath = `proj/${projectFolder}/`;
+
+        if (
+          relativePath.startsWith(folderPath) &&
+          !relativePath.includes("_thumb.jpg") &&
+          relativePath.replace(folderPath, "").indexOf("/") === -1
+        ) {
+          const imgThumb = relativePath.replace(".jpg", "_thumb.jpg");
+
+          const width = parseInt(src.match(/origWidth=(\d+)/)[1]);
+          const height = parseInt(src.match(/origHeight=(\d+)/)[1]);
+
+          return {
+            img: `../${relativePath}`,
+            imgThumb: `../${imgThumb}`,
+            width,
+            height,
+          };
+        }
       }
-    }
-    return null;
-  })
-  .filter(Boolean);
+      return null;
+    })
+    .filter(Boolean);
+};
+const photoPaths = await fetchPhotoPaths();
 ---
 
 <BaseLayout>
@@ -61,7 +74,11 @@ const photoPaths = photos
     {formattedDate + " - " + name}
   </h1>
   <div class="pswp-gallery" id="gallery">
-    {photoPaths.map((photoSrc) => <Photo img={`../${photoSrc}`} />)}
+    {
+      photoPaths.map(({ img, imgThumb, name, width, height }) => (
+        <Photo img={img} imgThumb={imgThumb} alt=`{name}` width={width} height={height} />
+      ))
+    }
   </div>
 </BaseLayout>
 <script type="module">

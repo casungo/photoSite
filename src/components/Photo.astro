@@ -1,15 +1,15 @@
 ---
-const { img } = Astro.props;
+const { img, imgThumb, alt, width, height } = Astro.props;
 ---
     <a
       href={img}
-      data-pswp-width="1669"
-      data-pswp-height="2500"
+      data-pswp-width={width}
+      data-pswp-height={height}
       target="_blank"
     >
       <img
-        src={img} + "_thumb"
-        alt=""
+        src={imgThumb}
+        alt={alt}
         class="img-fluid"
         width="25%"
       />
