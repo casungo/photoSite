@@ -3,30 +3,33 @@ import BaseLayout from "@layouts/BaseLayout.astro";
 import Card from "@components/Card.astro";
 const pageTitle = "Home Page";
 
-const fetchProjects = async () => {
-  const imageFiles = await Astro.glob("../../public/proj/*.jpg");
+async function fetchProjects() {
+  const imageFiles = await Astro.glob("../../public/proj/*");
   const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
 
   return imageFiles
     .map((image) => {
-      const imagePath = image.default.src;
-      const matches = imagePath.match(filenameRegex);
-      if (!matches) {
-        console.error(`Filename does not match expected pattern: ${imagePath}`);
-        return null;
-      }
-      const [_, date, name] = matches;
-      const formattedDate = `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(0, 4)}`;
-      
+      const imagePath = image.default;
+      const imagePathSrc = imagePath.src;
+      const match = imagePathSrc.match(filenameRegex);
+      const [_, date, name] = match;
+
+      const day = date.slice(6, 8);
+      const month = date.slice(4, 6);
+      const year = date.slice(0, 4);
+      const formattedDate = `${day}/${month}/${year}`;
+
       return {
-        imageUrl: `/proj/${date} - ${name}.jpg`,
+        imageUrl: imagePathSrc,
         title: name,
         subtitle: formattedDate,
         link: `${date} - ${name}/images`,
+        width: imagePath.width,
+        height: imagePath.height,
       };
     })
     .filter(Boolean);
-};
+}
 
 const projects = await fetchProjects();
 ---

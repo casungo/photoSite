@@ -4,68 +4,62 @@ import Photo from "@components/Photo.astro";
 
 export async function getStaticPaths() {
   const projectFiles = await Astro.glob("../../../public/proj/*");
-  const filenameRegex = /(\d{8}) - (.+?)\./;
+  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
 
-  const paths = projectFiles
-    .map((file) => {
-      const { src } = file.default;
-      const match = src.match(filenameRegex);
+  return projectFiles
+    .map((image) => {
+      const imagePath = image.default;
+      const imagePathSrc = imagePath.src;
+      const match = imagePathSrc.match(filenameRegex);
+      const [_, date, name] = match;
 
-      if (match) {
-        const [, date, name] = match;
-        return {
-          params: { date, name },
-        };
-      }
-      return null;
+      return {
+        params: { date, name },
+      };
     })
     .filter(Boolean);
-
-  return paths;
 }
+
 const { date, name } = Astro.params;
-const formattedDate = `${date.slice(6, 8)}/${date.slice(4, 6)}/${date.slice(
-  0,
-  4,
-)}`;
+const day = date.slice(6, 8);
+const month = date.slice(4, 6);
+const year = date.slice(0, 4);
+const formattedDate = `${day}/${month}/${year}`;
 
-const fetchPhotoPaths = async () => {
+async function fetchPhotos() {
+  const photos = await Astro.glob("../../../public/proj/**");
+  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
 
-  const photos = await Astro.glob("../../../public/proj/**/*.jpg");
-  const projectFolder = `${date} - ${name}`;
+  const filteredPhotos = photos.filter((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+    const match = imagePathSrc.match(filenameRegex);
+    const [_, date, name] = match;
 
-  return photos
-    .map((file) => {
-      const { src } = file.default;
-      const matches = src.match(/proj\/.+\.(jpg|jpeg)/i);
+    const isThumbnail = imagePathSrc.includes("_thumb");
+    const hasMatchingName = name.includes(Astro.params.name);
+    const hasMatchingDate = date.includes(Astro.params.date);
+    const hasUnderscore = imagePathSrc.includes("_", imagePathSrc.lastIndexOf("/") + 1);
 
-      if (matches) {
-        const relativePath = matches[0];
-        const folderPath = `proj/${projectFolder}/`;
+    return !isThumbnail && hasMatchingName && hasMatchingDate && hasUnderscore;
+  });
 
-        if (
-          relativePath.startsWith(folderPath) &&
-          !relativePath.includes("_thumb.jpg") &&
-          relativePath.replace(folderPath, "").indexOf("/") === -1
-        ) {
-          const imgThumb = relativePath.replace(".jpg", "_thumb.jpg");
+  return filteredPhotos.map((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+    const width = imagePath.width;
+    const height = imagePath.height;
 
-          const width = parseInt(src.match(/origWidth=(\d+)/)[1]);
-          const height = parseInt(src.match(/origHeight=(\d+)/)[1]);
+    return {
+      img: imagePathSrc,
+      // TODO: implement dopo: imgThumb,
+      width,
+      height,
+    };
+  });
+}
 
-          return {
-            img: `../${relativePath}`,
-            imgThumb: `../${imgThumb}`,
-            width,
-            height,
-          };
-        }
-      }
-      return null;
-    })
-    .filter(Boolean);
-};
-const photoPaths = await fetchPhotoPaths();
+const photos = await fetchPhotos();
 ---
 
 <BaseLayout>
@@ -74,13 +68,10 @@ const photoPaths = await fetchPhotoPaths();
     {formattedDate + " - " + name}
   </h1>
   <div class="pswp-gallery" id="gallery">
-    {
-      photoPaths.map(({ img, imgThumb, name, width, height }) => (
-        <Photo img={img} imgThumb={imgThumb} alt=`{name}` width={width} height={height} />
-      ))
-    }
+    {photos.map((photo) => <Photo {...photo} />)}
   </div>
 </BaseLayout>
+
 <script type="module">
   import PhotoSwipeLightbox from "/photoswipe/photoswipe-lightbox.esm.js";
 

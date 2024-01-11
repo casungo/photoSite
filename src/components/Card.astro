@@ -1,5 +1,5 @@
 ---
-const { img, title, subtitle, btnLink } = Astro.props;
+const { img, title, subtitle, btnLink, width, height } = Astro.props;
 ---
 <div class="col py-3">
 <div class="card h-100">
@@ -9,6 +9,8 @@ const { img, title, subtitle, btnLink } = Astro.props;
       alt={title}
       class="card-img-top"
       draggable="false"
+      width={width}
+      height={height}
     />
   </div>
   <div class="card-body">
