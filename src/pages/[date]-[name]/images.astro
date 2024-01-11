@@ -2,6 +2,7 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Photo from "@components/Photo.astro";
 
+
 export async function getStaticPaths() {
   const projectFiles = await Astro.glob("../../../public/proj/*");
   const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
@@ -39,7 +40,10 @@ async function fetchPhotos() {
     const isThumbnail = imagePathSrc.includes("_thumb");
     const hasMatchingName = name.includes(Astro.params.name);
     const hasMatchingDate = date.includes(Astro.params.date);
-    const hasUnderscore = imagePathSrc.includes("_", imagePathSrc.lastIndexOf("/") + 1);
+    const hasUnderscore = imagePathSrc.includes(
+      "_",
+      imagePathSrc.lastIndexOf("/") + 1,
+    );
 
     return !isThumbnail && hasMatchingName && hasMatchingDate && hasUnderscore;
   });
