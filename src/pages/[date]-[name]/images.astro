@@ -2,7 +2,6 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import Photo from "@components/Photo.astro";
 
-
 export async function getStaticPaths() {
   const projectFiles = await Astro.glob("../../../public/proj/*");
   const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
@@ -22,10 +21,41 @@ export async function getStaticPaths() {
 }
 
 const { date, name } = Astro.params;
-const day = date.slice(6, 8);
-const month = date.slice(4, 6);
-const year = date.slice(0, 4);
-const formattedDate = `${day}/${month}/${year}`;
+
+function formattedDate() {
+  const day = date.slice(6, 8);
+  const month = date.slice(4, 6);
+  const year = date.slice(0, 4);
+  const formattedDate = `${day}/${month}/${year}`;
+  return formattedDate;
+}
+
+async function fetchThumbImgs() {
+  const photos = await Astro.glob("../../../public/proj/*/*");
+  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
+
+  const filteredPhotos = photos.filter((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+    const match = imagePathSrc.match(filenameRegex);
+    const [_, date, name] = match;
+
+    const isThumbnail = imagePathSrc.includes("_thumb");
+    const hasMatchingName = name.includes(Astro.params.name);
+    const hasMatchingDate = date.includes(Astro.params.date);
+
+    return isThumbnail && hasMatchingName && hasMatchingDate;
+  });
+
+  return filteredPhotos.map((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+
+    return {
+      imgThumb: imagePathSrc,
+    };
+  });
+}
 
 async function fetchPhotos() {
   const photos = await Astro.glob("../../../public/proj/**");
@@ -48,7 +78,9 @@ async function fetchPhotos() {
     return !isThumbnail && hasMatchingName && hasMatchingDate && hasUnderscore;
   });
 
-  return filteredPhotos.map((image) => {
+  const thumbImgs = await fetchThumbImgs();
+
+  return filteredPhotos.map((image, index) => {
     const imagePath = image.default;
     const imagePathSrc = imagePath.src;
     const width = imagePath.width;
@@ -56,7 +88,7 @@ async function fetchPhotos() {
 
     return {
       img: imagePathSrc,
-      // TODO: implement dopo: imgThumb,
+      imgThumb: thumbImgs[index].imgThumb,
       width,
       height,
     };
@@ -69,7 +101,7 @@ const photos = await fetchPhotos();
 <BaseLayout>
   <link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
   <h1 class="text-center">
-    {formattedDate + " - " + name}
+    {formattedDate() + " - " + name}
   </h1>
   <div class="pswp-gallery" id="gallery">
     {photos.map((photo) => <Photo {...photo} />)}
