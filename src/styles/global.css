@@ -5,3 +5,11 @@
 .card-img-top {
   object-fit: cover
 }
+
+.card-img {
+  object-fit: cover
+}
+
+ a {
+   text-decoration: none;
+ }

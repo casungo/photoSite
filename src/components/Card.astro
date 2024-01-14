@@ -1,28 +1,29 @@
 ---
 const { img, title, subtitle, btnLink, width, height } = Astro.props;
 ---
+
 <div class="col py-3">
-<div class="card h-100">
-  <div class="ratio ratio-16x9">
-    <img
-      src={img}
-      alt={title}
-      class="card-img-top"
-      draggable="false"
-      width={width}
-      height={height}
-    />
+  <div class="card h-100">
+    <div class="ratio ratio-16x9">
+      <img
+        src={img}
+        alt={title}
+        class="card-img-top"
+        draggable="false"
+        width={width}
+        height={height}
+      />
+    </div>
+    <div class="card-body">
+      <h5 class="card-title">{title}</h5>
+      <h6 class="card-subtitle mb-2 text-body-secondary">
+        {subtitle}
+      </h6>
+    </div>
+    <div class="card-footer">
+      <a href={btnLink} class="btn btn-outline-primary">
+        <i class="bi bi-camera"></i> Vai alle foto!
+      </a>
+    </div>
   </div>
-  <div class="card-body">
-    <h5 class="card-title">{title}</h5>
-    <h6 class="card-subtitle mb-2 text-body-secondary">
-      {subtitle}
-    </h6>
-  </div>
-  <div class="card-footer">
-    <a href={btnLink} class="btn btn-outline-primary">
-      <i class="bi bi-camera"></i> Vai alle foto!
-    </a>
-  </div>
-</div>
 </div>
