@@ -31,43 +31,54 @@ function formattedDate() {
   return formattedDate;
 }
 
+// Modify the regex to capture the sequence number
+const filenameRegex = /(\d{8}) - (.+?)_(\d+)(\.[-\w]{8})?\.jpg/;
+
 async function fetchThumbImgs() {
-  const photos = await Astro.glob("../../../public/proj/*/*");
-  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
+  const thumbs = await Astro.glob("../../../public/proj/*/*");
 
-  const filteredPhotos = photos.filter((image) => {
-    const imagePath = image.default;
-    const imagePathSrc = imagePath.src;
-    const match = imagePathSrc.match(filenameRegex);
-    const [_, date, name] = match;
+  const filteredThumbs = thumbs.filter((thumb) => {
+    const thumbPath = thumb.default;
+    const thumbPathSrc = thumbPath.src;
+    const match = thumbPathSrc.match(filenameRegex);
+    if (!match) return false;
 
-    const isThumbnail = imagePathSrc.includes("_thumb");
+    const [_, date, name, sequence] = match;
     const hasMatchingName = name.includes(Astro.params.name);
     const hasMatchingDate = date.includes(Astro.params.date);
 
-    return isThumbnail && hasMatchingName && hasMatchingDate;
+    return hasMatchingName && hasMatchingDate;
   });
 
-  return filteredPhotos.map((image) => {
-    const imagePath = image.default;
-    const imagePathSrc = imagePath.src;
+  // Sort by the numeric sequence captured by the regex
+  filteredThumbs.sort((a, b) => {
+    const sequenceA = parseInt(a.default.src.match(filenameRegex)[3]);
+    const sequenceB = parseInt(b.default.src.match(filenameRegex)[3]);
+    return sequenceA - sequenceB;
+  });
 
+  return filteredThumbs.map((thumb) => {
+    const thumbPath = thumb.default;
+    const thumbPathSrc = thumbPath.src;
     return {
-      imgThumb: imagePathSrc,
+      imgThumb: thumbPathSrc
     };
   });
 }
 
+
+
 async function fetchPhotos() {
-  const photos = await Astro.glob("../../../public/proj/**");
-  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
+  const photos = await Astro.glob("../../../public/proj/*/*");
 
   const filteredPhotos = photos.filter((image) => {
     const imagePath = image.default;
     const imagePathSrc = imagePath.src;
     const match = imagePathSrc.match(filenameRegex);
-    const [_, date, name] = match;
+    if (!match) return false;
 
+    const [_, date, name, sequence] = match;
+    
     const isThumbnail = imagePathSrc.includes("_thumb");
     const hasMatchingName = name.includes(Astro.params.name);
     const hasMatchingDate = date.includes(Astro.params.date);
@@ -77,6 +88,13 @@ async function fetchPhotos() {
     );
 
     return !isThumbnail && hasMatchingName && hasMatchingDate && hasUnderscore;
+  });
+
+  // Sort by the numeric sequence captured by the regex
+  filteredPhotos.sort((a, b) => {
+    const sequenceA = parseInt(a.default.src.match(filenameRegex)[3]);
+    const sequenceB = parseInt(b.default.src.match(filenameRegex)[3]);
+    return sequenceA - sequenceB;
   });
 
   const thumbImgs = await fetchThumbImgs();
@@ -89,7 +107,7 @@ async function fetchPhotos() {
 
     return {
       img: imagePathSrc,
-      imgThumb: thumbImgs[index].imgThumb,
+      imgThumb: thumbImgs[index]?.imgThumb || '',
       width,
       height,
     };
