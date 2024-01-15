@@ -5,14 +5,14 @@ import TitleCardProj from "@components/TitleCardProj.astro";
 
 export async function getStaticPaths() {
   const projectFiles = await Astro.glob("../../../public/proj/*");
-  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
+  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
 
   return projectFiles
     .map((image) => {
       const imagePath = image.default;
       const imagePathSrc = imagePath.src;
       const match = imagePathSrc.match(filenameRegex);
-      const [_, date, name] = match;
+    const [_, date, name, numeric, thumb, eightChar] = match;
 
       return {
         params: { date, name },
@@ -31,63 +31,19 @@ function formattedDate() {
   return formattedDate;
 }
 
-// Modify the regex to capture the sequence number
-const filenameRegex = /(\d{8}) - (.+?)_(\d+)(\.[-\w]{8})?\.jpg/;
-
-async function fetchThumbImgs() {
-  const thumbs = await Astro.glob("../../../public/proj/*/*");
-
-  const filteredThumbs = thumbs.filter((thumb) => {
-    const thumbPath = thumb.default;
-    const thumbPathSrc = thumbPath.src;
-    const match = thumbPathSrc.match(filenameRegex);
-    if (!match) return false;
-
-    const [_, date, name, sequence] = match;
-    const hasMatchingName = name.includes(Astro.params.name);
-    const hasMatchingDate = date.includes(Astro.params.date);
-
-    return hasMatchingName && hasMatchingDate;
-  });
-
-  // Sort by the numeric sequence captured by the regex
-  filteredThumbs.sort((a, b) => {
-    const sequenceA = parseInt(a.default.src.match(filenameRegex)[3]);
-    const sequenceB = parseInt(b.default.src.match(filenameRegex)[3]);
-    return sequenceA - sequenceB;
-  });
-
-  return filteredThumbs.map((thumb) => {
-    const thumbPath = thumb.default;
-    const thumbPathSrc = thumbPath.src;
-    return {
-      imgThumb: thumbPathSrc
-    };
-  });
-}
-
-
-
-async function fetchPhotos() {
+async function fetchThumbPhotos() {
   const photos = await Astro.glob("../../../public/proj/*/*");
-
+  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
   const filteredPhotos = photos.filter((image) => {
     const imagePath = image.default;
     const imagePathSrc = imagePath.src;
     const match = imagePathSrc.match(filenameRegex);
-    if (!match) return false;
 
-    const [_, date, name, sequence] = match;
-    
-    const isThumbnail = imagePathSrc.includes("_thumb");
+    const [_, date, name, numeric, thumb, eightChar] = match;
     const hasMatchingName = name.includes(Astro.params.name);
     const hasMatchingDate = date.includes(Astro.params.date);
-    const hasUnderscore = imagePathSrc.includes(
-      "_",
-      imagePathSrc.lastIndexOf("/") + 1,
-    );
-
-    return !isThumbnail && hasMatchingName && hasMatchingDate && hasUnderscore;
+    
+    return thumb && hasMatchingDate && hasMatchingName;
   });
 
   // Sort by the numeric sequence captured by the regex
@@ -97,17 +53,54 @@ async function fetchPhotos() {
     return sequenceA - sequenceB;
   });
 
-  const thumbImgs = await fetchThumbImgs();
+  return filteredPhotos.map((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+    const imgThumb = imagePathSrc;
 
-  return filteredPhotos.map((image, index) => {
+    return {
+      imgThumb,
+    };
+  });
+}
+
+async function fetchPhotos() {
+  const thumbPhotos = await fetchThumbPhotos(); // Call fetchThumbPhotos to get the imgThumb
+  const photos = await Astro.glob("../../../public/proj/*/*");
+  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+  const filteredPhotos = photos.filter((image) => {
+    const imagePath = image.default;
+    const imagePathSrc = imagePath.src;
+    const match = imagePathSrc.match(filenameRegex);
+
+    const [_, date, name, numeric, thumb, eightChar] = match;
+    const hasMatchingName = name.includes(Astro.params.name);
+    const hasMatchingDate = date.includes(Astro.params.date);
+    
+    if (thumb) {
+      return false;
+    }
+
+    return hasMatchingDate && hasMatchingName;
+  });
+
+  // Sort by the numeric sequence captured by the regex
+  filteredPhotos.sort((a, b) => {
+    const sequenceA = parseInt(a.default.src.match(filenameRegex)[3]);
+    const sequenceB = parseInt(b.default.src.match(filenameRegex)[3]);
+    return sequenceA - sequenceB;
+  });
+
+  return filteredPhotos.map((image, index) => { // Add the index parameter
     const imagePath = image.default;
     const imagePathSrc = imagePath.src;
     const width = imagePath.width;
     const height = imagePath.height;
+    const imgThumb = thumbPhotos[index]?.imgThumb; // Use the imgThumb from fetchThumbPhotos
 
     return {
       img: imagePathSrc,
-      imgThumb: thumbImgs[index]?.imgThumb || '',
+      imgThumb,
       width,
       height,
     };
@@ -116,30 +109,20 @@ async function fetchPhotos() {
 
 async function fetchHeroImage() {
   const photos = await Astro.glob("../../../public/proj/*");
-  const filenameRegex = /(\d{8}) - (.+?)(\.[-\w]{8})?\.jpg/;
-
+  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
   const filteredPhotos = photos.filter((image) => {
     const imagePath = image.default;
     const imagePathSrc = imagePath.src;
     const match = imagePathSrc.match(filenameRegex);
-    const [_, date, name] = match;
 
+    const [_, date, name, numeric, thumb, eightChar] = match;
     const hasMatchingName = name.includes(Astro.params.name);
     const hasMatchingDate = date.includes(Astro.params.date);
 
-    return hasMatchingName && hasMatchingDate;
+    return hasMatchingDate && hasMatchingName;
   });
 
-  const thumbImgs = await fetchThumbImgs();
-
-  return filteredPhotos.map((image, index) => {
-    const imagePath = image.default;
-    const imagePathSrc = imagePath.src;
-
-    return {
-      img: imagePathSrc,
-    };
-  });
+  return filteredPhotos[0]?.default?.src;
 }
 
 const photos = await fetchPhotos();
@@ -150,7 +133,7 @@ const heroImage = await fetchHeroImage();
   <link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
   <h1 class="text-center">
     <TitleCardProj
-      img={heroImage[0].img}
+      img={heroImage}
       title={name}
       contentDate={formattedDate()}
       contentTitle={name}
