@@ -5,14 +5,15 @@ const pageTitle = "Home Page";
 
 async function fetchProjects() {
   const imageFiles = await Astro.glob("../../public/proj/*");
-  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
 
   return imageFiles
     .map((image) => {
       const imagePath = image.default;
       const imagePathSrc = imagePath.src;
       const match = imagePathSrc.match(filenameRegex);
-    const [_, date, name, numeric, thumb, eightChar] = match;
+      const [_, date, name, numeric, thumb, eightChar] = match;
 
       const day = date.slice(6, 8);
       const month = date.slice(4, 6);

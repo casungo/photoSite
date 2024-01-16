@@ -49,11 +49,15 @@ async function fetchPhotos() {
   };
 
   // Separate photos and thumbnails into different arrays and filter by params and number in filename
-  const filteredPhotos = photos.filter((image) =>
-    !image.default.src.includes('_thumb') && photoMatchesParams(image.default.src)
+  const filteredPhotos = photos.filter(
+    (image) =>
+      !image.default.src.includes("_thumb") &&
+      photoMatchesParams(image.default.src),
   );
-  const filteredThumbPhotos = photos.filter((image) =>
-    image.default.src.includes('_thumb') && photoMatchesParams(image.default.src)
+  const filteredThumbPhotos = photos.filter(
+    (image) =>
+      image.default.src.includes("_thumb") &&
+      photoMatchesParams(image.default.src),
   );
 
   // Function to sort by numeric identifier in ascending order
@@ -85,7 +89,9 @@ async function fetchPhotos() {
       const thumbMatch = thumbPathSrc.match(filenameRegex);
       if (!thumbMatch) return false;
       const [_, thumbDate, thumbName, thumbNumeric] = thumbMatch;
-      return date === thumbDate && name === thumbName && numeric === thumbNumeric;
+      return (
+        date === thumbDate && name === thumbName && numeric === thumbNumeric
+      );
     });
 
     // Extract src for the thumbnail
@@ -133,15 +139,17 @@ const heroImage = await fetchHeroImage();
       contentTitle={name}
     />
   </h1>
-<div class="pswp-gallery centered" id="gallery">
-  <div class="gallery-container">
-    {photos.map((photo) => (
-      <div class="image-wrapper">
-        <Photo {...photo} />
-      </div>
-    ))}
+  <div class="pswp-gallery centered" id="gallery">
+    <div class="gallery-container">
+      {
+        photos.map((photo) => (
+          <div class="image-wrapper">
+            <Photo {...photo} />
+          </div>
+        ))
+      }
+    </div>
   </div>
-</div>
 </BaseLayout>
 
 <script type="module">
