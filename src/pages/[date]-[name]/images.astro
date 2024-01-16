@@ -5,14 +5,15 @@ import TitleCardProj from "@components/TitleCardProj.astro";
 
 export async function getStaticPaths() {
   const projectFiles = await Astro.glob("../../../public/proj/*");
-  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
 
   return projectFiles
     .map((image) => {
       const imagePath = image.default;
       const imagePathSrc = imagePath.src;
       const match = imagePathSrc.match(filenameRegex);
-    const [_, date, name, numeric, thumb, eightChar] = match;
+      const [_, date, name, numeric, thumb, eightChar] = match;
 
       return {
         params: { date, name },
@@ -31,76 +32,68 @@ function formattedDate() {
   return formattedDate;
 }
 
-async function fetchThumbPhotos() {
-  const photos = await Astro.glob("../../../public/proj/*/*");
-  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
-  const filteredPhotos = photos.filter((image) => {
-    const imagePath = image.default;
-    const imagePathSrc = imagePath.src;
-    const match = imagePathSrc.match(filenameRegex);
-
-    const [_, date, name, numeric, thumb, eightChar] = match;
-    const hasMatchingName = name.includes(Astro.params.name);
-    const hasMatchingDate = date.includes(Astro.params.date);
-    
-    return thumb && hasMatchingDate && hasMatchingName;
-  });
-
-  // Sort by the numeric sequence captured by the regex
-  filteredPhotos.sort((a, b) => {
-    const sequenceA = parseInt(a.default.src.match(filenameRegex)[3]);
-    const sequenceB = parseInt(b.default.src.match(filenameRegex)[3]);
-    return sequenceA - sequenceB;
-  });
-
-  return filteredPhotos.map((image) => {
-    const imagePath = image.default;
-    const imagePathSrc = imagePath.src;
-    const imgThumb = imagePathSrc;
-
-    return {
-      imgThumb,
-    };
-  });
-}
-
 async function fetchPhotos() {
-  const thumbPhotos = await fetchThumbPhotos(); // Call fetchThumbPhotos to get the imgThumb
   const photos = await Astro.glob("../../../public/proj/*/*");
-  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
-  const filteredPhotos = photos.filter((image) => {
-    const imagePath = image.default;
-    const imagePathSrc = imagePath.src;
-    const match = imagePathSrc.match(filenameRegex);
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
 
-    const [_, date, name, numeric, thumb, eightChar] = match;
+  // Function to check if photo matches the params and contains a number in the filename
+  const photoMatchesParams = (imagePathSrc) => {
+    const match = imagePathSrc.match(filenameRegex);
+    if (!match) return false;
+    const [_, date, name, numeric] = match;
     const hasMatchingName = name.includes(Astro.params.name);
     const hasMatchingDate = date.includes(Astro.params.date);
-    
-    if (thumb) {
-      return false;
-    }
+    const hasNumberInFilename = !!numeric;
+    return hasMatchingName && hasMatchingDate && hasNumberInFilename;
+  };
 
-    return hasMatchingDate && hasMatchingName;
-  });
+  // Separate photos and thumbnails into different arrays and filter by params and number in filename
+  const filteredPhotos = photos.filter((image) =>
+    !image.default.src.includes('_thumb') && photoMatchesParams(image.default.src)
+  );
+  const filteredThumbPhotos = photos.filter((image) =>
+    image.default.src.includes('_thumb') && photoMatchesParams(image.default.src)
+  );
 
-  // Sort by the numeric sequence captured by the regex
-  filteredPhotos.sort((a, b) => {
-    const sequenceA = parseInt(a.default.src.match(filenameRegex)[3]);
-    const sequenceB = parseInt(b.default.src.match(filenameRegex)[3]);
-    return sequenceA - sequenceB;
-  });
+  // Function to sort by numeric identifier in ascending order
+  const sortPhotos = (a, b) => {
+    const matchA = a.match(filenameRegex);
+    const matchB = b.match(filenameRegex);
+    const numericA = matchA && matchA[3] ? parseInt(matchA[3]) : 0;
+    const numericB = matchB && matchB[3] ? parseInt(matchB[3]) : 0;
+    return numericA - numericB;
+  };
 
-  return filteredPhotos.map((image, index) => { // Add the index parameter
-    const imagePath = image.default;
+  // Sort both photo arrays
+  filteredPhotos.sort((a, b) => sortPhotos(a.default.src, b.default.src));
+  filteredThumbPhotos.sort((a, b) => sortPhotos(a.default.src, b.default.src));
+
+  return filteredPhotos.map((photo) => {
+    const imagePath = photo.default;
     const imagePathSrc = imagePath.src;
     const width = imagePath.width;
     const height = imagePath.height;
-    const imgThumb = thumbPhotos[index]?.imgThumb; // Use the imgThumb from fetchThumbPhotos
+
+    // Extract data from the main image
+    const match = imagePathSrc.match(filenameRegex);
+    const [_, date, name, numeric] = match;
+
+    // Find the corresponding thumbnail image
+    const thumbImage = filteredThumbPhotos.find((thumb) => {
+      const thumbPathSrc = thumb.default.src;
+      const thumbMatch = thumbPathSrc.match(filenameRegex);
+      if (!thumbMatch) return false;
+      const [_, thumbDate, thumbName, thumbNumeric] = thumbMatch;
+      return date === thumbDate && name === thumbName && numeric === thumbNumeric;
+    });
+
+    // Extract src for the thumbnail
+    const thumbSrc = thumbImage ? thumbImage.default.src : null;
 
     return {
       img: imagePathSrc,
-      imgThumb,
+      imgThumb: thumbSrc,
       width,
       height,
     };
@@ -109,7 +102,8 @@ async function fetchPhotos() {
 
 async function fetchHeroImage() {
   const photos = await Astro.glob("../../../public/proj/*");
-  const filenameRegex = /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
+  const filenameRegex =
+    /(\d{8}) - (.*?)(?:_(\d+))?(?:_(thumb))?(?:\.(.{8}))?\.jpg/i;
   const filteredPhotos = photos.filter((image) => {
     const imagePath = image.default;
     const imagePathSrc = imagePath.src;
@@ -139,9 +133,15 @@ const heroImage = await fetchHeroImage();
       contentTitle={name}
     />
   </h1>
-  <div class="pswp-gallery" id="gallery">
-    {photos.map((photo) => <Photo {...photo} />)}
+<div class="pswp-gallery centered" id="gallery">
+  <div class="gallery-container">
+    {photos.map((photo) => (
+      <div class="image-wrapper">
+        <Photo {...photo} />
+      </div>
+    ))}
   </div>
+</div>
 </BaseLayout>
 
 <script type="module">
