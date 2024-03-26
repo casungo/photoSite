@@ -5,14 +5,15 @@
   "main": "index.js",
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "cloudflarePreview": "astro build && wrangler pages dev ./dist --port 9001",
+    "upgradeEverything": "pnpm dlx @astrojs/upgrade && pnpm update"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "astro": "^4.3.5"
+    "@astrojs/cloudflare": "^9.1.0",
+    "@astrojs/sitemap": "^3.1.1",
+    "astro": "^4.5.6",
+    "sharp": "^0.33.2",
+    "wrangler": "^3.35.0"
   }
 }

@@ -1,5 +1,7 @@
 ---
 const { img, title, contentDate, contentTitle } = Astro.props;
+
+import { Image } from "astro:assets";
 ---
 
 <style>
@@ -9,7 +11,7 @@ const { img, title, contentDate, contentTitle } = Astro.props;
 </style>
 
 <div class="card text-bg-dark mx-auto my-4">
-  <img src={img} class="card-img" alt={title} style="max-height: 200px;" />
+  <Image src={img} class="card-img" alt={title} style="max-height: 200px;" />
   <div class="card-img-overlay">
     <p
       class="card-text position-absolute bottom-0 start-50 translate-middle-x pb-3"

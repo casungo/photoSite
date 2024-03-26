@@ -1,6 +1,8 @@
 {
   "extends": "astro/tsconfigs/base",
   "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true,
     "baseUrl": ".",
     "paths": {
       "@components/*": [
@@ -14,6 +16,12 @@
       ],
       "@styles/*": [
         "src/styles/*"
+      ],
+      "@content/*": [
+        "src/content/*"
+      ],
+      "@assets/*": [
+        "src/assets/*"
       ],
       "@photoswipe/*": [
         "src/photoswipe/*"

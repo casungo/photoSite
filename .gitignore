@@ -20,5 +20,8 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
-#Visual Studio Code files
-/.vscode
+# Visual Studio Code files
+.vscode/
+
+# Cloudflare files
+.wrangler/
