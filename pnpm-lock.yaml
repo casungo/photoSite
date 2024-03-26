@@ -6,20 +6,20 @@ settings:
 
 dependencies:
   '@astrojs/cloudflare':
-    specifier: ^9.1.0
+    specifier: ^9.2.0
     version: 9.2.0(astro@4.5.9)
   '@astrojs/sitemap':
     specifier: ^3.1.1
     version: 3.1.1
   astro:
-    specifier: ^4.5.6
+    specifier: ^4.5.9
     version: 4.5.9
   sharp:
-    specifier: ^0.33.2
+    specifier: ^0.33.3
     version: 0.33.3
   wrangler:
-    specifier: ^3.35.0
-    version: 3.37.0
+    specifier: ^3.38.0
+    version: 3.38.0
 
 packages:
 
@@ -4547,8 +4547,8 @@ packages:
       '@cloudflare/workerd-windows-64': 1.20240320.1
     dev: false
 
-  /wrangler@3.37.0:
-    resolution: {integrity: sha512-dffPF92EApW77lIYXxz0DMoMm2LPMlFNlgrQ0jNj7g7Mm/AaogtSuY7jXNLSeoniYNHL/57V7wlVBn82aYIqyg==}
+  /wrangler@3.38.0:
+    resolution: {integrity: sha512-sm6WNKRKax6cC+E2SBGWx3+Wabh047oxZolBwH0AMok+PINs4vsoS8x6ZJ4dk+iIXZQ2RzZLr3gyWSUA44q4Rg==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:

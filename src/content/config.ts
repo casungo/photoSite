@@ -8,7 +8,6 @@ const projects = defineCollection({
       pubDate: z.date(),
 			heroImage: image(),
 			images: z.array(image()),
-      thumbImages: z.array(image())
     })
 });
 

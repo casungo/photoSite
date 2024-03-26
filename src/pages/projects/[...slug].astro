@@ -22,32 +22,31 @@ const photos = entry.data.images;
 ---
 
 <BaseLayout>
-  <link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
-    <h1 class="text-center">
-    <TitleCardProj
-      img={entry.data.heroImage}
-      title={entry.data.title}
-      contentDate={entry.data.pubDate.toDateString()}
-      contentTitle={entry.data.title}
-    />
-  </h1>
+<link rel="stylesheet" href="/photoswipe/photoswipe.css" slot="head" />
+<h1 class="text-center">
+  <TitleCardProj
+  img={entry.data.heroImage}
+  title={entry.data.title}
+  contentDate={entry.data.pubDate.toDateString()}
+  contentTitle={entry.data.title}
+  />
+</h1>
   <div class="pswp-gallery centered" id="gallery">
     <div class="gallery-container">
       {photos.map((photo: any, index) => ( 
         <div class="image-wrapper">
-        <a href={photo.src} data-pswp-width={photo.width} data-pswp-height={photo.height} target="_blank">
-        <Image src={entry.data.thumbImages[index]} alt={entry.data.title} class="img-fluid rounded m-2 shadow" width="150"/>
-        <style>
-    @media (min-width: 576px) {
-      Image {
-        width: 200px;
-      }
-    }
-  </style>
-  
-</a>
-</div>
-        ))}
+          <a href={photo.src} data-pswp-width={photo.width} data-pswp-height={photo.height} target="_blank">
+          <Image src={entry.data.images[index]} alt={entry.data.title} class="img-fluid rounded m-2 shadow" width="150"/>
+            <style>
+              @media (min-width: 576px) {
+                Image {
+                width: 200px;
+                }
+              }
+            </style>
+          </a>
+        </div>
+      ))}
     </div>
   </div>
 </BaseLayout>

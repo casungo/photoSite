@@ -1,14 +1,13 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
-import Card from "@components/Card.astro";
 const pageTitle = "Home Page";
-
-
 ---
 
 <BaseLayout>
   <title slot="head">{pageTitle}</title>
   <div class="d-grid gap-2 col-6 mx-auto">
-<a class="btn btn-lg btn-primary" href="/projects" role="button">Vai ai progetti</a>
+    <a class="btn btn-lg btn-primary" href="/projects" role="button"
+      >Vai ai progetti</a
+    >
   </div>
 </BaseLayout>
